@@ -160,7 +160,28 @@
                               (f32.convert_i32_s (get_local $i)))
                      (get_local $width)
                      (f32.mul (get_local $cell_height)
-                              (f32.convert_i32_s (get_local $i))))))
+                              (f32.convert_i32_s (get_local $i)))))
+            ,(for-local
+              '$row '(i32.const 0) `(i32.const ,*height*)
+              (for-local
+               '$col '(i32.const 0) `(i32.const ,*width*)
+               `(br_if 0 (i32.eqz
+                          (i32.load8_s
+                           (i32.add
+                            (i32.mul
+                             (get_local $row)
+                             (i32.const ,*width*))
+                            (get_local $col)))))
+               `(call
+                 $fill_rect
+                 (f32.mul
+                  (f32.convert_i32_s (get_local $col))
+                  (get_local $cell_width))
+                 (f32.mul
+                  (f32.convert_i32_s (get_local $row))
+                  (get_local $cell_height))
+                 (get_local $cell_width)
+                 (get_local $cell_height)))))
 
     (func (export "fib")
           (param $n i32)
