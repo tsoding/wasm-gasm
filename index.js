@@ -13,30 +13,14 @@ WebAssembly
                 context.lineTo(x2, y2);
                 context.stroke();
             },
+            fill_rect: (x, y, w, h) => {
+                context.fillStyle = "red";
+                context.fillRect(x, y, w, h);
+            }
         }
     })
     .then(obj => {
-        let display =
-            new DataView(obj.instance.exports.display.buffer);
-        // .o.
-        // ..o
-        // ooo
-        const glider = [
-            [0, 1],
-            [1, 2],
-            [2, 0],
-            [2, 1],
-            [2, 2]
-        ];
-
-        const height = 5;
-        glider.forEach(([row, col]) => {
-            display.setInt8(row * height + col, 1);
-        });
-
+        obj.instance.exports.init();
+        obj.instance.exports.next();
         obj.instance.exports.render(640, 480);
-
-        // for(let i = 0; i < 10; ++i) {
-        //     console.log(obj.instance.exports.fib(i));
-        // }
     });

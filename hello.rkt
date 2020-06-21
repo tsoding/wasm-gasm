@@ -40,6 +40,11 @@
             (param f32)
             (param f32)
             (param f32))
+      (func $fill_rect (import "imports" "fill_rect")
+            (param f32)
+            (param f32)
+            (param f32)
+            (param f32))
       (memory (export "display") 1 1)
 
       (func $memcpy
@@ -96,7 +101,25 @@
                `(set_local $result (i32.add (get_local $result) (i32.const 1)))))
             (get_local $result))
 
-      ;; TODO: $next is not implemented
+      (func $set_cell
+            (param $row i32)
+            (param $col i32)
+            (param $value i32)
+            (i32.store8
+             (i32.add
+              (i32.mul
+               (get_local $row)
+               (i32.const ,*width*))
+              (get_local $col))
+             (get_local $value)))
+
+      (func (export "init")
+            (call $set_cell (i32.const 0) (i32.const 1) (i32.const 1))
+            (call $set_cell (i32.const 1) (i32.const 2) (i32.const 1))
+            (call $set_cell (i32.const 2) (i32.const 0) (i32.const 1))
+            (call $set_cell (i32.const 2) (i32.const 1) (i32.const 1))
+            (call $set_cell (i32.const 2) (i32.const 2) (i32.const 1)))
+
       (func (export "next")
             (local $row i32)
             (local $col i32)
@@ -140,6 +163,8 @@
             (param $height f32)
             (local $cell_width f32)
             (local $cell_height f32)
+            (local $row i32)
+            (local $col i32)
             (local $i i32)
             (set_local $cell_width (f32.div (get_local $width) (f32.const ,*width*)))
             (set_local $cell_height (f32.div (get_local $height) (f32.const ,*height*)))
