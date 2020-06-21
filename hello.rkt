@@ -37,6 +37,19 @@
             (param i32))
       (memory (export "display") 1 1)
 
+      (func $memcpy
+            (param $dst i32)
+            (param $src i32)
+            (param $size i32)
+            (block $exit
+             (loop $top
+                   (br_if $exit (i32.eqz (get_local $size)))
+                   (i32.store8 (get_local $dst) (i32.load8_s (get_local $src)))
+                   (set_local $size (i32.sub (get_local $size) (i32.const 1)))
+                   (set_local $dst (i32.add (get_local $dst) (i32.const 1)))
+                   (set_local $src (i32.add (get_local $src) (i32.const 1)))
+                   (br $top))))
+
       (func $neighbors (export "neighbors")
             (param $row0 i32)
             (param $col0 i32)
@@ -82,24 +95,40 @@
       (func (export "next")
             (local $row i32)
             (local $col i32)
+            (local $index i32)
+            (local $n i32)
             ,(for-local
               '$row '(i32.const 0) `(i32.const ,*height*)
               (for-local
                '$col '(i32.const 0) `(i32.const ,*width*)
-               `(if (i32.eqz
-                     (i32.load8_s
+               `(set_local $index
+                           (i32.add
+                            (i32.mul
+                             (get_local $row)
+                             (i32.const ,*width*))
+                            (get_local $col)))
+               `(set_local $n (call $neighbors (get_local $row) (get_local $col)))
+               `(if (i32.eqz (i32.load8_s (get_local $index)))
+                    ;; dead
+                    (then
+                     (i32.store8
                       (i32.add
-                       (i32.mul
-                        (get_local $row)
-                        (i32.const ,*height*))
-                       (get_local $col))))
-                    (then                 ; dead
-                     )
-                    (else                 ; alive
-                     ))
-               '(call $print_pair
-                      (get_local $row)
-                      (get_local $col)))))
+                       (get_local $index)
+                       (i32.const ,(* *width* *height*)))
+                      (i32.eq (get_local $n) (i32.const 3))))
+                    ;; alive
+                    (else
+                     (i32.store8
+                      (i32.add
+                       (get_local $index)
+                       (i32.const ,(* *width* *height*)))
+                      (i32.or
+                       (i32.eq (get_local $n) (i32.const 2))
+                       (i32.eq (get_local $n) (i32.const 3))))))))
+            (call $memcpy
+                  (i32.const 0)
+                  (i32.const ,(* *width* *height*))
+                  (i32.const ,(* *width* *height*))))
 
     (func (export "fib")
           (param $n i32)
