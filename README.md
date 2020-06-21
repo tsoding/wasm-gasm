@@ -11,6 +11,7 @@ This is the result of a simple exercise of trying to program in WebAssembly for 
 
 ```console
 $ make
-$ <browser> index.html
+$ python -m SimpleHTTPServer 8080
+$ <browser> http://localhost:8080/
 <Open browser's DevTools>
 ```
