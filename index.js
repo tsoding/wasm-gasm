@@ -26,6 +26,8 @@ WebAssembly
         });
 
         console.log(obj);
+        console.log("neighbors(0, 0) => " + obj.instance.exports.neighbors(0, 0));
+        console.log("neighbors(1, 1) => " + obj.instance.exports.neighbors(1, 1));
         // for(let i = 0; i < 10; ++i) {
         //     console.log(obj.instance.exports.fib(i));
         // }

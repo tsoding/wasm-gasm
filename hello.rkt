@@ -20,10 +20,11 @@
     `(block ,quit
             (set_local ,local-i ,stack-low)
             (loop ,top
-                  (if (i32.ge_u (get_local ,local-i)
-                                ,stack-high)
-                      (br ,quit))
-                  ,@body
+                  (br_if ,quit
+                         (i32.ge_s (get_local ,local-i)
+                                   ,stack-high))
+                  (block $continue
+                   ,@body)
                   (set_local ,local-i (i32.add (get_local ,local-i) (i32.const 1)))
                   (br ,top)))))
 
@@ -36,27 +37,46 @@
             (param i32))
       (memory (export "display") 1 1)
 
-      ;; TODO: $neighbors is not implemented
-      (func $neighbors
-            (param $row i32)
-            (param $col i32)
+      (func $neighbors (export "neighbors")
+            (param $row0 i32)
+            (param $col0 i32)
             (result i32)
             (local $drow i32)
             (local $dcol i32)
+            (local $row i32)
+            (local $col i32)
+            (local $result i32)
+            (set_local $result (i32.const 0))
             ,(for-local
               '$drow '(i32.const -1) '(i32.const 2)
               (for-local
                '$dcol '(i32.const -1) '(i32.const 2)
-               `(i32.add
-                 (i32.mul
-                  (i32.add
-                   (get_local $drow)
-                   (get_local $row))
-                  (i32.const ,*height*))
-                 (i32.add
-                  (get_local $dcol)
-                  (get_local $col)))))
-            (i32.const 0))
+               ;; Neighbor check
+               '(br_if 0
+                       (i32.and
+                        (i32.eqz (get_local $drow))
+                        (i32.eqz (get_local $dcol))))
+               '(set_local $row (i32.add (get_local $row0) (get_local $drow)))
+               '(set_local $col (i32.add (get_local $col0) (get_local $dcol)))
+
+               ;; Boundary for row
+               '(br_if 0 (i32.lt_s (get_local $row) (i32.const 0)))
+               `(br_if 0 (i32.ge_s (get_local $row) (i32.const ,*height*)))
+
+               ;; Boundary for col
+               '(br_if 0 (i32.lt_s (get_local $col) (i32.const 0)))
+               `(br_if 0 (i32.ge_s (get_local $col) (i32.const ,*width*)))
+
+               ;; Check if alive
+               `(br_if 0 (i32.eqz
+                          (i32.load8_s
+                           (i32.add (i32.mul (get_local $row)
+                                             (i32.const ,*width*))
+                                    (get_local $col)))))
+
+               ;; Increment amount of neighbors
+               `(set_local $result (i32.add (get_local $result) (i32.const 1)))))
+            (get_local $result))
 
       ;; TODO: $next is not implemented
       (func (export "next")
