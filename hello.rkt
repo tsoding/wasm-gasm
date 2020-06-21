@@ -1,7 +1,7 @@
 #lang racket
 
-(define *width* 10)
-(define *height* 10)
+(define *width* 100)
+(define *height* 100)
 
 (define (repeat-n-times n . body)
   (let ((quit (gensym "$quit"))
@@ -32,34 +32,28 @@
  `(module
       (func $print (import "imports" "print")
             (param i32))
-      (func $print_pair (import "imports" "print_pair")
-            (param i32)
-            (param i32))
-      (func $line (import "imports" "line")
-            (param f32)
-            (param f32)
-            (param f32)
-            (param f32))
       (func $fill_rect (import "imports" "fill_rect")
             (param f32)
             (param f32)
             (param f32)
             (param f32))
       (func $clear (import "imports" "clear"))
-      (memory (export "display") 1 1)
+      (func $rand (import "imports" "rand") (result i32))
+      ;; TODO: calculate amount of pages based on *width* and *height*
+      (memory (export "display") 32 32)
 
       (func $memcpy
             (param $dst i32)
             (param $src i32)
             (param $size i32)
             (block $exit
-             (loop $top
-                   (br_if $exit (i32.eqz (get_local $size)))
-                   (i32.store8 (get_local $dst) (i32.load8_s (get_local $src)))
-                   (set_local $size (i32.sub (get_local $size) (i32.const 1)))
-                   (set_local $dst (i32.add (get_local $dst) (i32.const 1)))
-                   (set_local $src (i32.add (get_local $src) (i32.const 1)))
-                   (br $top))))
+                   (loop $top
+                         (br_if $exit (i32.eqz (get_local $size)))
+                         (i32.store8 (get_local $dst) (i32.load8_s (get_local $src)))
+                         (set_local $size (i32.sub (get_local $size) (i32.const 1)))
+                         (set_local $dst (i32.add (get_local $dst) (i32.const 1)))
+                         (set_local $src (i32.add (get_local $src) (i32.const 1)))
+                         (br $top))))
 
       (func $neighbors (export "neighbors")
             (param $row0 i32)
@@ -114,12 +108,29 @@
               (get_local $col))
              (get_local $value)))
 
-      (func (export "init")
+      (func $init_single_glider
             (call $set_cell (i32.const 0) (i32.const 1) (i32.const 1))
             (call $set_cell (i32.const 1) (i32.const 2) (i32.const 1))
             (call $set_cell (i32.const 2) (i32.const 0) (i32.const 1))
             (call $set_cell (i32.const 2) (i32.const 1) (i32.const 1))
             (call $set_cell (i32.const 2) (i32.const 2) (i32.const 1)))
+
+      (func $init_random
+            (local $row i32)
+            (local $col i32)
+            ,(for-local
+              '$row '(i32.const 0) `(i32.const ,*height*)
+              (for-local
+               '$col '(i32.const 0) `(i32.const ,*width*)
+               `(call $set_cell
+                      (get_local $row)
+                      (get_local $col)
+                      (i32.rem_u
+                       (call $rand)
+                       (i32.const 2))))))
+
+      (func (export "init")
+            (call $init_random))
 
       (func (export "next")
             (local $row i32)
@@ -170,24 +181,6 @@
             (set_local $cell_width (f32.div (get_local $width) (f32.const ,*width*)))
             (set_local $cell_height (f32.div (get_local $height) (f32.const ,*height*)))
             (call $clear)
-            ,(for-local
-              '$i '(i32.const 0) `(i32.add (i32.const ,*width*) (i32.const 1))
-              `(call $line
-                     (f32.mul (get_local $cell_width)
-                              (f32.convert_i32_s (get_local $i)))
-                     (f32.const 0)
-                     (f32.mul (get_local $cell_width)
-                              (f32.convert_i32_s (get_local $i)))
-                     (get_local $height)))
-            ,(for-local
-              '$i '(i32.const 0) `(i32.add (i32.const ,*height*) (i32.const 1))
-              `(call $line
-                     (f32.const 0)
-                     (f32.mul (get_local $cell_height)
-                              (f32.convert_i32_s (get_local $i)))
-                     (get_local $width)
-                     (f32.mul (get_local $cell_height)
-                              (f32.convert_i32_s (get_local $i)))))
             ,(for-local
               '$row '(i32.const 0) `(i32.const ,*height*)
               (for-local
