@@ -1,6 +1,5 @@
-let context = document
-    .getElementById('display')
-    .getContext('2d');
+let display = document.getElementById('display');
+let context = display.getContext('2d');
 
 WebAssembly
     .instantiateStreaming(fetch('hello.wasm'), {
@@ -16,11 +15,14 @@ WebAssembly
             fill_rect: (x, y, w, h) => {
                 context.fillStyle = "red";
                 context.fillRect(x, y, w, h);
+            },
+            clear: () => {
+                context.clearRect(0, 0, display.width, display.height);
             }
         }
     })
     .then(obj => {
         obj.instance.exports.init();
         obj.instance.exports.next();
-        obj.instance.exports.render(640, 480);
+        obj.instance.exports.render(display.width, display.height);
     });

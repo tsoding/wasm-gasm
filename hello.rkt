@@ -45,6 +45,7 @@
             (param f32)
             (param f32)
             (param f32))
+      (func $clear (import "imports" "clear"))
       (memory (export "display") 1 1)
 
       (func $memcpy
@@ -168,6 +169,7 @@
             (local $i i32)
             (set_local $cell_width (f32.div (get_local $width) (f32.const ,*width*)))
             (set_local $cell_height (f32.div (get_local $height) (f32.const ,*height*)))
+            (call $clear)
             ,(for-local
               '$i '(i32.const 0) `(i32.add (i32.const ,*width*) (i32.const 1))
               `(call $line
