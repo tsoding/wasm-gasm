@@ -6,6 +6,7 @@ This is the result of a simple exercise of trying to program in WebAssembly for 
 
 - [racket](https://racket-lang.org/)
 - [wabt](https://github.com/WebAssembly/wabt)
+- [python 2.7+](https://www.python.org/)
 
 ## Usage
 
