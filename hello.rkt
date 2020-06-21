@@ -1,7 +1,7 @@
 #lang racket
 
-(define *width* 5)
-(define *height* 5)
+(define *width* 10)
+(define *height* 10)
 
 (define (repeat-n-times n . body)
   (let ((quit (gensym "$quit"))
@@ -35,6 +35,11 @@
       (func $print_pair (import "imports" "print_pair")
             (param i32)
             (param i32))
+      (func $line (import "imports" "line")
+            (param f32)
+            (param f32)
+            (param f32)
+            (param f32))
       (memory (export "display") 1 1)
 
       (func $memcpy
@@ -129,6 +134,33 @@
                   (i32.const 0)
                   (i32.const ,(* *width* *height*))
                   (i32.const ,(* *width* *height*))))
+
+      (func (export "render")
+            (param $width f32)
+            (param $height f32)
+            (local $cell_width f32)
+            (local $cell_height f32)
+            (local $i i32)
+            (set_local $cell_width (f32.div (get_local $width) (f32.const ,*width*)))
+            (set_local $cell_height (f32.div (get_local $height) (f32.const ,*height*)))
+            ,(for-local
+              '$i '(i32.const 0) `(i32.add (i32.const ,*width*) (i32.const 1))
+              `(call $line
+                     (f32.mul (get_local $cell_width)
+                              (f32.convert_i32_s (get_local $i)))
+                     (f32.const 0)
+                     (f32.mul (get_local $cell_width)
+                              (f32.convert_i32_s (get_local $i)))
+                     (get_local $height)))
+            ,(for-local
+              '$i '(i32.const 0) `(i32.add (i32.const ,*height*) (i32.const 1))
+              `(call $line
+                     (f32.const 0)
+                     (f32.mul (get_local $cell_height)
+                              (f32.convert_i32_s (get_local $i)))
+                     (get_local $width)
+                     (f32.mul (get_local $cell_height)
+                              (f32.convert_i32_s (get_local $i))))))
 
     (func (export "fib")
           (param $n i32)

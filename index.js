@@ -1,24 +1,23 @@
-var importObject = {
-    imports: {
-        print: arg => console.log(arg),
-        print_pair: (a, b) => console.log(`(${a}, ${b})`)
-    }
-};
-
-function printDisplay(display, n, width, height) {
-    for (let row = 0; row < height; ++row) {
-        let line = "";
-        for (let col = 0; col < width; ++col) {
-            line += `${display.getInt8(row * width + col + n * width * height)} `;
-        }
-        console.log(line);
-    }
-}
+let context = document
+    .getElementById('display')
+    .getContext('2d');
 
 WebAssembly
-    .instantiateStreaming(fetch('hello.wasm'), importObject)
+    .instantiateStreaming(fetch('hello.wasm'), {
+        imports: {
+            print: arg => console.log(arg),
+            print_pair: (a, b) => console.log(`(${a}, ${b})`),
+            line: (x1, y1, x2, y2) => {
+                context.strokeStyle = "red";
+                context.moveTo(x1, y1);
+                context.lineTo(x2, y2);
+                context.stroke();
+            },
+        }
+    })
     .then(obj => {
-        let display = new DataView(obj.instance.exports.display.buffer);
+        let display =
+            new DataView(obj.instance.exports.display.buffer);
         // .o.
         // ..o
         // ooo
@@ -35,25 +34,7 @@ WebAssembly
             display.setInt8(row * height + col, 1);
         });
 
-        printDisplay(display, 0, 5, 5);
-        console.log("------------------------------");
-
-        obj.instance.exports.next();
-        printDisplay(display, 0, 5, 5);
-        console.log("------------------------------");
-
-        obj.instance.exports.next();
-        printDisplay(display, 0, 5, 5);
-        console.log("------------------------------");
-
-        obj.instance.exports.next();
-        printDisplay(display, 0, 5, 5);
-        console.log("------------------------------");
-
-        obj.instance.exports.next();
-        printDisplay(display, 0, 5, 5);
-        console.log("------------------------------");
-
+        obj.instance.exports.render(640, 480);
 
         // for(let i = 0; i < 10; ++i) {
         //     console.log(obj.instance.exports.fib(i));
