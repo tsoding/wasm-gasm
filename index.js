@@ -1,6 +1,12 @@
 let display = document.getElementById('display');
 let context = display.getContext('2d');
 
+function nextFrame(obj) {
+    obj.instance.exports.next();
+    obj.instance.exports.render(display.width, display.height);
+    setTimeout(nextFrame, 500, obj);
+}
+
 WebAssembly
     .instantiateStreaming(fetch('hello.wasm'), {
         imports: {
@@ -23,6 +29,5 @@ WebAssembly
     })
     .then(obj => {
         obj.instance.exports.init();
-        obj.instance.exports.next();
-        obj.instance.exports.render(display.width, display.height);
+        setTimeout(nextFrame, 500, obj);
     });
