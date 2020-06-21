@@ -46,15 +46,16 @@
               '$drow '(i32.const -1) '(i32.const 2)
               (for-local
                '$dcol '(i32.const -1) '(i32.const 2)
-               '(i32.add
+               `(i32.add
                  (i32.mul
                   (i32.add
                    (get_local $drow)
                    (get_local $row))
-                  ,*height*)
+                  (i32.const ,*height*))
                  (i32.add
                   (get_local $dcol)
-                  (get_local $col))))))
+                  (get_local $col)))))
+            (i32.const 0))
 
       (func (export "next")
             (local $row i32)
@@ -63,7 +64,7 @@
               '$row '(i32.const 0) `(i32.const ,*height*)
               (for-local
                '$col '(i32.const 0) `(i32.const ,*width*)
-               '(if (i32.eqz
+               `(if (i32.eqz
                      (i32.load8_s
                       (i32.add
                        (i32.mul
