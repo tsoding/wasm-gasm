@@ -36,6 +36,7 @@
             (param i32))
       (memory (export "display") 1 1)
 
+      ;; TODO: $neighbors is not implemented
       (func $neighbors
             (param $row i32)
             (param $col i32)
@@ -57,6 +58,7 @@
                   (get_local $col)))))
             (i32.const 0))
 
+      ;; TODO: $next is not implemented
       (func (export "next")
             (local $row i32)
             (local $col i32)
