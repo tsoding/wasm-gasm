@@ -1,5 +1,8 @@
-gol.wasm: gol.wat
-	wat2wasm gol.wat
+.PHONY: all
+all: gol.wasm fib.wasm
 
-gol.wat: gol.rkt
-	racket gol.rkt > gol.wat
+%.wasm: %.wat
+	wat2wasm $<
+
+%.wat: %.rkt
+	racket $< > $@

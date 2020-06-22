@@ -3,17 +3,6 @@
 (define *width* 1000)
 (define *height* 1000)
 
-(define (repeat-n-times n . body)
-  (let ((quit (gensym "$quit"))
-        (top (gensym "$top")))
-    `(block ,quit
-            (loop ,top
-                  (if (i32.le_u (get_local ,n) (i32.const 0)) (br ,quit))
-                  ,@body
-                  (set_local ,n (i32.sub (get_local ,n) (i32.const 1)))
-                  (br ,top)))))
-
-
 (define (for-local local-i stack-low stack-high . body)
   (let ((quit (gensym "$quit"))
         (top (gensym "$top")))
@@ -201,22 +190,6 @@
                   (f32.convert_i32_s (get_local $row))
                   (get_local $cell_height))
                  (get_local $cell_width)
-                 (get_local $cell_height)))))
-
-    (func (export "fib")
-          (param $n i32)
-          (result i32)
-          (local $a i32)
-          (local $b i32)
-          (set_local $a (i32.const 0))
-          (set_local $b (i32.const 1))
-          ,(repeat-n-times
-            '$n
-            '(i32.add
-              (get_local $a)
-              (get_local $b))
-            '(set_local $a (get_local $b))
-            '(set_local $b))
-          (get_local $a)))
+                 (get_local $cell_height))))))
  (current-output-port)
  1)
