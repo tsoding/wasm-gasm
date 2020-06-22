@@ -1,7 +1,7 @@
 #lang racket
 
-(define *width* 100)
-(define *height* 100)
+(define *width* 1000)
+(define *height* 1000)
 
 (define (repeat-n-times n . body)
   (let ((quit (gensym "$quit"))
@@ -39,8 +39,8 @@
             (param f32))
       (func $clear (import "imports" "clear"))
       (func $rand (import "imports" "rand") (result i32))
-      ;; TODO: calculate amount of pages based on *width* and *height*
-      (memory (export "display") 32 32)
+      ,(let ((pages (ceiling (/ (* 2 *width* *height*) 64000))))
+         `(memory (export "display") ,pages ,pages))
 
       (func $memcpy
             (param $dst i32)
