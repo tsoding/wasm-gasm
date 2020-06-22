@@ -1,5 +1,5 @@
-hello.wasm: hello.wat
-	wat2wasm hello.wat
+gol.wasm: gol.wat
+	wat2wasm gol.wat
 
-hello.wat: hello.rkt
-	racket hello.rkt > hello.wat
+gol.wat: gol.rkt
+	racket gol.rkt > gol.wat

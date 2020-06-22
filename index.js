@@ -8,7 +8,7 @@ function nextFrame(obj) {
 }
 
 WebAssembly
-    .instantiateStreaming(fetch('hello.wasm'), {
+    .instantiateStreaming(fetch('gol.wasm'), {
         imports: {
             print: arg => console.log(arg),
             fill_rect: (x, y, w, h) => {
