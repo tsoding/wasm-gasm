@@ -12,9 +12,9 @@
 
 (print
  `(module
+      (func $print (import "imports" "print") (param i32))
       (func (export "fib")
             (param $n i32)
-            (result i32)
             (local $a i32)
             (local $b i32)
             (set_local $a (i32.const 0))
@@ -25,7 +25,7 @@
                 (get_local $a)
                 (get_local $b))
               '(set_local $a (get_local $b))
-              '(set_local $b))
-            (get_local $a)))
+              '(set_local $b)
+              '(call $print (get_local $a)))))
  (current-output-port)
  1)
