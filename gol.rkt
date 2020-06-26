@@ -119,45 +119,82 @@
                        (i32.const 2))))))
 
       (func (export "init")
-            (call $init_random))
+            (call $init_random)
+            )
 
-      (func (export "next")
-            (local $row i32)
+      (func $handle_row
+            (param $row i32)
+            (param $buffer i32)
             (local $col i32)
             (local $index i32)
             (local $n i32)
             ,(for-local
-              '$row '(i32.const 0) `(i32.const ,*height*)
-              (for-local
-               '$col '(i32.const 0) `(i32.const ,*width*)
-               `(set_local $index
-                           (i32.add
-                            (i32.mul
-                             (get_local $row)
-                             (i32.const ,*width*))
-                            (get_local $col)))
-               `(set_local $n (call $neighbors (get_local $row) (get_local $col)))
-               `(if (i32.eqz (i32.load8_s (get_local $index)))
-                    ;; dead
-                    (then
-                     (i32.store8
+              '$col '(i32.const 0) `(i32.const ,*width*)
+              `(set_local $index
+                          (i32.add
+                           (i32.mul
+                            (get_local $row)
+                            (i32.const ,*width*))
+                           (get_local $col)))
+              `(set_local $n (call $neighbors (get_local $row) (get_local $col)))
+              `(if (i32.eqz (i32.load8_s (get_local $index)))
+                   ;; dead
+                   (then
+                    (i32.store8
+                     (i32.add
                       (i32.add
-                       (get_local $index)
-                       (i32.const ,(* *width* *height*)))
-                      (i32.eq (get_local $n) (i32.const 3))))
-                    ;; alive
-                    (else
-                     (i32.store8
+                       (i32.const ,(* *width* *height*))
+                       (get_local $col))
+                      (i32.mul
+                       (get_local $buffer)
+                       (i32.const ,*width*)))
+                     (i32.eq (get_local $n) (i32.const 3))))
+                   ;; alive
+                   (else
+                    (i32.store8
+                     (i32.add
                       (i32.add
-                       (get_local $index)
-                       (i32.const ,(* *width* *height*)))
-                      (i32.or
-                       (i32.eq (get_local $n) (i32.const 2))
-                       (i32.eq (get_local $n) (i32.const 3))))))))
-            (call $memcpy
-                  (i32.const 0)
-                  (i32.const ,(* *width* *height*))
-                  (i32.const ,(* *width* *height*))))
+                       (i32.const ,(* *width* *height*))
+                       (get_local $col))
+                      (i32.mul
+                       (get_local $buffer)
+                       (i32.const ,*width*)))
+                     (i32.or
+                      (i32.eq (get_local $n) (i32.const 2))
+                      (i32.eq (get_local $n) (i32.const 3))))))))
+
+      (func (export "next")
+            (local $row i32)
+            (local $buffer i32)
+            (set_local $buffer (i32.const 0))
+            ,(for-local
+              '$row '(i32.const 0) `(i32.const ,(+ *height* 2))
+              ;; if (row > 1) {
+              ;;     copy_buffer_row(buffer_row, row - 2);
+              ;; }
+              `(block
+                (br_if 0 (i32.le_s (get_local $row) (i32.const 1)))
+                (call $memcpy
+                      (i32.mul
+                       (i32.sub
+                        (get_local $row)
+                        (i32.const 2))
+                       (i32.const ,*width*))
+                      (i32.add
+                       (i32.const ,(* *width* *height*))
+                       (i32.mul (get_local $buffer) (i32.const ,*width*)))
+                      (i32.const ,*width*)))
+              ;; if (row < ROWS) {
+              ;;     handle_row(row, buffer_row);
+              ;; }
+              `(block
+                (br_if 0 (i32.ge_s (get_local $row) (i32.const ,*height*)))
+                (call $handle_row (get_local $row) (get_local $buffer)))
+              ;; buffer_row = 1 - buffer_row;
+              `(set_local $buffer
+                          (i32.sub
+                           (i32.const 1)
+                           (get_local $buffer)))))
 
       (func (export "render")
             (param $width f32)
